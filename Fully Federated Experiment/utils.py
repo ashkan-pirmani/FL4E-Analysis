@@ -1,8 +1,8 @@
 import torch
 from torch import nn
 import numpy as np
+from sklearn.metrics import roc_curve, auc
 import torch.optim as optim
-from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader, random_split
 from flamby_dataset import FedHeart
 import wandb
@@ -21,18 +21,13 @@ class Net(nn.Module):
         return x
 
 
-def get_data_loaders(train_dataset, test_dataset, val_ratio, batch_size):
-    num_samples = len(train_dataset)
-    num_val_samples = int(val_ratio * num_samples)
-    num_train_samples = num_samples - num_val_samples
-
-    train_dataset, val_dataset = random_split(train_dataset, [num_train_samples, num_val_samples])
-
+def get_data_loaders(train_dataset, val_dataset, test_dataset, batch_size=64):
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
     return train_loader, val_loader, test_loader
+
 
 def train_one_epoch(model, criterion, optimizer, train_loader, device):
     model.train()
@@ -51,6 +46,7 @@ def train_one_epoch(model, criterion, optimizer, train_loader, device):
         train_loss += loss.item()
     return train_loss / len(train_loader)
 
+
 def validate(model, criterion, val_loader, device):
     model.eval()
     val_loss = 0.0
@@ -67,9 +63,14 @@ def validate(model, criterion, val_loader, device):
             predictions = torch.sigmoid(outputs).cpu().detach().numpy()
             val_predictions.extend(predictions)
             val_labels.extend(labels.cpu().numpy())
-    return val_loss / len(val_loader), roc_auc_score(val_labels, val_predictions)
 
-def train(model, train_dataset, val_ratio=0.2, num_epochs=10, batch_size=64, hidden=25, lr=0.001):
+    fpr, tpr, thresholds = roc_curve(val_labels, val_predictions)
+    roc_auc = auc(fpr, tpr)
+
+    return val_loss / len(val_loader), roc_auc
+
+
+def train(model, train_dataset, val_dataset, num_epochs=10, batch_size=64, hidden=25, lr=0.001):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     default_config = {
@@ -84,7 +85,7 @@ def train(model, train_dataset, val_ratio=0.2, num_epochs=10, batch_size=64, hid
         config = wandb.config
         criterion = nn.BCEWithLogitsLoss()
         optimizer = getattr(optim, config.optimizer.capitalize())(model.parameters(), lr=config.lr)
-        train_loader, val_loader, _ = get_data_loaders(train_dataset, val_ratio, config.batch_size)
+        train_loader, val_loader, _ = get_data_loaders(train_dataset, val_dataset, config.batch_size)
 
         for epoch in range(config.num_epochs):
             train_loss = train_one_epoch(model, criterion, optimizer, train_loader, device)
@@ -102,14 +103,44 @@ def train(model, train_dataset, val_ratio=0.2, num_epochs=10, batch_size=64, hid
             print(f"  Validation Loss: {val_loss}")
             print(f"  ROC-AUC: {roc_auc}")
 
-        return model
+        results = {
+            "train_loss": train_loss,
+            "train_roc_auc": roc_auc,
+            "val_loss": val_loss,
+        }
+        return results
+        print(results)
+
+
+def evaluate(model, criterion, test_loader, device):
+    model.eval()
+    test_loss = 0.0
+    test_predictions, test_labels = [], []
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+
+            test_loss += loss.item()
+
+            predictions = torch.sigmoid(outputs).cpu().detach().numpy()
+            test_predictions.extend(predictions)
+            test_labels.extend(labels.cpu().numpy())
+
+    fpr, tpr, thresholds = roc_curve(test_labels, test_predictions)
+    roc_auc = auc(fpr, tpr)
+
+    return test_loss / len(test_loader), roc_auc
+
 
 def test(model, test_dataset, batch_size=64):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     criterion = nn.BCEWithLogitsLoss()
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
-    test_loss, roc_auc = test(model, criterion, test_loader, device)
+    test_loss, roc_auc = evaluate(model, criterion, test_loader, device)
 
     print("Test Loss:", test_loss)
     print("ROC-AUC:", roc_auc)
@@ -117,24 +148,28 @@ def test(model, test_dataset, batch_size=64):
     return test_loss, roc_auc
 
 
-
-
 def load_partition(idx: int):
     """Load clients of the training and test data to simulate a partition."""
     # load data
     train_datasets, test_datasets = FedHeart()
-    assert idx in range(len(train_datasets))
-    for idx in range(0, len(train_datasets)):
-        trainset = train_datasets[idx]
-    for idx in range(0, len(test_datasets)):
-        testset = test_datasets[idx]
+
+    # validate index
+    if not (0 <= idx < len(train_datasets) and 0 <= idx < len(test_datasets)):
+        raise ValueError(f"Invalid index: {idx}. Ensure it's within the range of available datasets.")
+
+    trainset = train_datasets[idx]
+    testset = test_datasets[idx]
+
+    num_samples = len(trainset)
+    print(num_samples)
+    num_val_samples = int(0.2 * num_samples)
+    num_train_samples = num_samples - num_val_samples
+
+    trainset, valset = random_split(trainset, [num_train_samples, num_val_samples])
+
+    return trainset, valset, testset
 
 
-    return (trainset, testset)
-
-
-
-
-
-
-
+def get_model_params(model):
+    """Returns a model's parameters."""
+    return [val.cpu().numpy() for _, val in model.state_dict().items()]

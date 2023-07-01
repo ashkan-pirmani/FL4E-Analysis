@@ -20,12 +20,14 @@ class MSClients(fl.client.NumPyClient):
             self,
             cid,
             trainset: torchvision.datasets,
+            valset:torchvision.datasets,
             testset: torchvision.datasets,
             device: str,
             config: dict
     ):
         self.cid = cid
         self.trainset = trainset
+        self.valset = valset
         self.testset = testset
         self.device = device
         self.config = config
@@ -53,16 +55,17 @@ class MSClients(fl.client.NumPyClient):
         batch_size: int = self.config["batch_size"]
         epochs: int = self.config["local_epochs"]
         train_dataset = self.trainset
+        val_dataset = self.valset
 
         results = []
         for epoch in range(epochs):
             print(f"Training epoch {epoch + 1}/{epochs}...")
-            result = utils.train(model=model, train_dataset=train_dataset, val_ratio=0.2, num_epochs=15, batch_size=64,
+            result = utils.train(model=model, train_dataset=train_dataset, val_dataset=val_dataset, num_epochs=5, batch_size=64,
                                  hidden=25, lr=0.001)
             print(
-                f" Train ROC_AUC: {result['train_roc_auc']:.4f} || Train Loss: {result['train_loss']:.4f}")
+                f" ROC_AUC: {result['train_roc_auc']:.4f} || Train Loss: {result['train_loss']:.4f}")
             print(
-                f" Val ROC_AUC: {result['val_roc_auc']:.4f} || Val Loss: {result['val_loss']:.4f} ")
+                f" Val Loss: {result['val_loss']:.4f} ")
             results.append(result)
 
         parameters_prime = utils.get_model_params(model)
@@ -73,7 +76,6 @@ class MSClients(fl.client.NumPyClient):
         results = {"train_loss": results[epoch]['train_loss'],
                    "train_roc_auc": results[epoch]['train_roc_auc'],
                    "val_loss": results[epoch]['val_loss'],
-                   "val_roc_auc": results[epoch]['val_roc_auc'],
                    "cid": self.cid}
 
         """returns the result of the all training epoch"""
@@ -95,7 +97,7 @@ class MSClients(fl.client.NumPyClient):
         # Evaluate the global model on the local test data of each client and return results
 
         testset = self.testset
-        loss, roc_auc = utils.test(model=model,test_dataset=testset)
+        loss, roc_auc = utils.test(model=model, test_dataset=testset, batch_size=batch_size)
         num_examples = len(self.testset)
 
         metrics = {
@@ -120,7 +122,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    train_dataset , test_dataset = load_partition(args.cid)
+    train_dataset, val_dataset, test_dataset = load_partition(args.cid)
 
     device = torch.device(
         "cuda:0" if torch.cuda.is_available() and args.use_cuda else "cpu"
@@ -128,12 +130,12 @@ def main() -> None:
 
     config = {
         "batch_size": 64,
-        "local_epochs": 25,  # Example value, replace with your desired value
+        "local_epochs": 5,  # Example value, replace with your desired value
         "val_steps": 10,  # Example value, replace with your desired value
     }
 
     # start client
-    client = MSClients(args.cid, train_dataset, test_dataset, device, config)
+    client = MSClients(args.cid, train_dataset, val_dataset ,test_dataset, device, config)
 
     fl.client.start_numpy_client(server_address="0.0.0.0:8787", client=client)
 

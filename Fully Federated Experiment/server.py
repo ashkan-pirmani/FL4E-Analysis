@@ -86,9 +86,9 @@ def main():
     strategy = SaveModelStrategy(
         fraction_fit=1,
         fraction_evaluate=1,
-        min_fit_clients=4,
-        min_evaluate_clients=4,
-        min_available_clients=4,
+        min_fit_clients=1,
+        min_evaluate_clients=1,
+        min_available_clients=1,
         evaluate_metrics_aggregation_fn=weighted_average,
         #fit_metrics_aggregation_fn=clients_id
 
