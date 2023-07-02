@@ -45,7 +45,7 @@ class FL4EClients(fl.client.NumPyClient):
         print(f"[Client {self.cid}] fit, config: {config}")
 
         # Initialize wandb run
-        run = wandb.init(project="FL4E", config=config, group="Client " + str(self.cid), job_type="training")
+        run = wandb.init(project="FL4E-Experiments", config=config, group="Hybrid -Client " + str(self.cid), job_type="client training")
         config = wandb.config
 
         # Update local model parameters
@@ -130,7 +130,7 @@ class FL4EClients(fl.client.NumPyClient):
 
 def main() -> None:
     # Parse command line argument `partition`
-    parser = argparse.ArgumentParser(description="FL4E Fully Federated")
+    parser = argparse.ArgumentParser(description="FL4E Hybrid Setting")
     parser.add_argument(
         "--cid",
         type=int,

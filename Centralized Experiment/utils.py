@@ -97,7 +97,7 @@ def train_and_test(train_dataset, test_dataset, val_ratio=0.2, num_epochs=10, ba
         "hidden": hidden,
     }
 
-    with wandb.init(config=default_config, project='FL4E', name='Centralized') as run:
+    with wandb.init(config=default_config, project='FL4E-Experiments', group='Centralized') as run:
         config = wandb.config
         model = Net(13, hidden, 1).to(device)
         criterion = nn.BCEWithLogitsLoss()
@@ -131,25 +131,65 @@ def train_and_test(train_dataset, test_dataset, val_ratio=0.2, num_epochs=10, ba
         return test_loss, roc_auc
 
 
+import time
+import resource
+import numpy as np
+
+import time
+import resource
+import numpy as np
+import os
 
 
-def run_experiments(n_experiments, train_dataset, test_dataset, val_ratio=0.2, num_epochs=10, batch_size=64, hidden=25,
+def run_experiments(n_experiments, train_dataset, test_dataset, val_ratio=0.2, num_epochs=10, batch_size=16, hidden=35,
                     lr=0.001):
     test_losses, roc_aucs = [], []
+    cpu_times, ram_usages, elapsed_times = [], [], []
 
     for i in range(n_experiments):
         print(f"Running experiment {i + 1}/{n_experiments}")
+
+        # Start measuring time and resources
+        start_time = time.time()
+        usage_start = resource.getrusage(resource.RUSAGE_SELF)
+
+        # Run the experiment
         test_loss, roc_auc = train_and_test(train_dataset, test_dataset, val_ratio, num_epochs, batch_size, hidden, lr)
+
+        # End measuring resource usage and time
+        usage_end = resource.getrusage(resource.RUSAGE_SELF)
+        end_time = time.time()
+
+        # Calculate and store experiment metrics
         test_losses.append(test_loss)
         roc_aucs.append(roc_auc)
+
+        # Calculate and store resource usage and elapsed time
+        cpu_times.append(usage_end.ru_utime - usage_start.ru_utime)
+        elapsed_times.append(end_time - start_time)
+        if os.name == 'posix':  # Linux
+            ram_usages.append((usage_end.ru_maxrss - usage_start.ru_maxrss) / 1024)
+        else:  # MacOS
+            ram_usages.append((usage_end.ru_maxrss - usage_start.ru_maxrss) / (1024 * 1024))
 
     avg_test_loss = np.mean(test_losses)
     std_test_loss = np.std(test_losses)
     avg_roc_auc = np.mean(roc_aucs)
     std_roc_auc = np.std(roc_aucs)
 
+    avg_cpu_time = np.mean(cpu_times)
+    std_cpu_time = np.std(cpu_times)
+    avg_elapsed_time = np.mean(elapsed_times)
+    std_elapsed_time = np.std(elapsed_times)
+    avg_ram_usage = np.mean(ram_usages)
+    std_ram_usage = np.std(ram_usages)
+
     print(f"\nAverage Test Loss: {avg_test_loss} +- {std_test_loss}")
     print(f"Average ROC-AUC: {avg_roc_auc} +- {std_roc_auc}")
+    print(f"\nAverage CPU Time: {avg_cpu_time} +- {std_cpu_time} seconds")
+    print(f"Average Elapsed Time: {avg_elapsed_time} +- {std_elapsed_time} seconds")
+    print(f"Average RAM Usage: {avg_ram_usage} +- {std_ram_usage} megabytes")
 
-    return avg_test_loss, std_test_loss, avg_roc_auc, std_roc_auc
+    print('Logs and models saved in current directory')
 
+    return avg_test_loss, std_test_loss, avg_roc_auc, std_roc_auc, avg_cpu_time, std_cpu_time, avg_elapsed_time, std_elapsed_time, avg_ram_usage, std_ram_usage

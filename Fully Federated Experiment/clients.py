@@ -48,7 +48,7 @@ class FL4EClients(fl.client.NumPyClient):
         print(f"[Client {self.cid}] fit, config: {config}")
 
         # Initialize wandb run
-        run = wandb.init(project="FL4E", config=config, group="Client " + str(self.cid), job_type="training")
+        run = wandb.init(project="FL4E-Experiments", config=config, group="Client " + str(self.cid), job_type="client training")
         config = wandb.config
 
         # Update local model parameters

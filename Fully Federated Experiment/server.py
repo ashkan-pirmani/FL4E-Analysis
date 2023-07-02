@@ -24,9 +24,9 @@ def fit_config(server_round: int):
 
     """
     config = {
-        "batch_size": 64,
+        "batch_size": 16,
         "num_epochs": 10,
-        "hidden": 28,
+        "hidden": 35,
         "lr": 0.001,
         "optimizer": 'adam',
     }
@@ -38,13 +38,13 @@ def evaluate_config(server_round: int):
 
     """
     config = {
-        "batch_size": 64,
+        "batch_size": 16,
     }
     return config
 
 
 def weighted_average(metrics):
-    wandb.init(project="FL4E", config=None, group="Server", job_type="server")
+    wandb.init(project="FL4E-Experiments", config=None, group="Server", job_type="server")
     roc_auc_weights = [num_examples * m["roc_auc"] for num_examples, m in metrics]
     loss_weights = [num_examples * m["loss"] for num_examples, m in metrics]
     cid = [m["cid"] for num_examples, m in metrics]
