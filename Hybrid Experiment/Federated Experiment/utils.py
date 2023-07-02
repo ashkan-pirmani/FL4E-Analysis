@@ -136,6 +136,7 @@ def load_partition(idx: int):
     # load data
     train_datasets, test_datasets = FedHeart()
 
+
     # validate index
     if not (0 <= idx < len(train_datasets) and 0 <= idx < len(test_datasets)):
         raise ValueError(f"Invalid index: {idx}. Ensure it's within the range of available datasets.")

@@ -16,7 +16,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = Net(13, 25, 1).to(DEVICE)
 
 
-class MSClients(fl.client.NumPyClient):
+class FL4EClients(fl.client.NumPyClient):
     def __init__(
             self,
             cid,
@@ -151,7 +151,7 @@ def main() -> None:
     )
 
     # start client
-    client = MSClients(args.cid, train_dataset, val_dataset, test_dataset, device)
+    client = FL4EClients(args.cid, train_dataset, val_dataset, test_dataset, device)
 
     fl.client.start_numpy_client(server_address="0.0.0.0:8787", client=client)
 

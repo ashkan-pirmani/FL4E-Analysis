@@ -112,9 +112,9 @@ def main():
     strategy = SaveModelStrategy(
         fraction_fit=1,
         fraction_evaluate=1,
-        min_fit_clients=4,
-        min_evaluate_clients=4,
-        min_available_clients=4,
+        min_fit_clients=3,
+        min_evaluate_clients=3,
+        min_available_clients=3,
         evaluate_metrics_aggregation_fn=weighted_average,
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=evaluate_config,
