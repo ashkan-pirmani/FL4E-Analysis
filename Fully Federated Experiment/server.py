@@ -7,8 +7,8 @@ import flwr as fl
 from flwr.common import Metrics, FitRes, Scalar, Parameters, parameters_to_ndarrays
 from flwr.server.client_proxy import ClientProxy
 import os
+import wandb
 from datetime import datetime
-
 
 warnings.filterwarnings("ignore")
 
@@ -19,7 +19,32 @@ def clients_id(results):
         f"This should be Client IDs joined for the training {cid}")
 
 
+def fit_config(server_round: int):
+    """Return training configuration dict for each round.
+
+    """
+    config = {
+        "batch_size": 64,
+        "num_epochs": 10,
+        "hidden": 28,
+        "lr": 0.001,
+        "optimizer": 'adam',
+    }
+    return config
+
+
+def evaluate_config(server_round: int):
+    """Return evaluation configuration dict for each round.
+
+    """
+    config = {
+        "batch_size": 64,
+    }
+    return config
+
+
 def weighted_average(metrics):
+    wandb.init(project="FL4E", config=None, group="Server", job_type="server")
     roc_auc_weights = [num_examples * m["roc_auc"] for num_examples, m in metrics]
     loss_weights = [num_examples * m["loss"] for num_examples, m in metrics]
     cid = [m["cid"] for num_examples, m in metrics]
@@ -30,9 +55,10 @@ def weighted_average(metrics):
     roc_auc = sum(roc_auc_weights) / total_examples
     loss = sum(loss_weights) / total_examples
 
-
     print(
         f"This should be Client ID joined for the evaluation {cid} | Aggregated ROC-AUC: {roc_auc}  | Aggregated Loss: {loss}")
+
+    wandb.log({"Aggregated roc_auc": roc_auc, "Aggregated loss": loss, "cid": cid})
 
     return {"roc_auc": roc_auc, "loss": loss}
 
@@ -86,13 +112,16 @@ def main():
     strategy = SaveModelStrategy(
         fraction_fit=1,
         fraction_evaluate=1,
-        min_fit_clients=1,
-        min_evaluate_clients=1,
-        min_available_clients=1,
+        min_fit_clients=4,
+        min_evaluate_clients=4,
+        min_available_clients=4,
         evaluate_metrics_aggregation_fn=weighted_average,
-        #fit_metrics_aggregation_fn=clients_id
+        on_fit_config_fn=fit_config,
+        on_evaluate_config_fn=evaluate_config,
+        # fit_metrics_aggregation_fn=clients_id
 
     )
+
 
     fl.server.start_server(
         server_address="0.0.0.0:8787",
@@ -112,7 +141,7 @@ if __name__ == "__main__":
 
     # Your script execution here
     main()
-
+    wandb.finish()
     # End measuring resource usage
     usage_end = resource.getrusage(resource.RUSAGE_SELF)
     # End measuring time

@@ -8,6 +8,7 @@ from flamby_dataset import FedHeart
 import argparse
 from collections import OrderedDict
 import logging, sys
+import wandb
 import warnings
 
 # warnings.filterwarnings("ignore")
@@ -20,17 +21,15 @@ class MSClients(fl.client.NumPyClient):
             self,
             cid,
             trainset: torchvision.datasets,
-            valset:torchvision.datasets,
+            valset: torchvision.datasets,
             testset: torchvision.datasets,
             device: str,
-            config: dict
     ):
         self.cid = cid
         self.trainset = trainset
         self.valset = valset
         self.testset = testset
         self.device = device
-        self.config = config
 
     def get_parameters(self, config):
         print(f"[Client {self.cid}] get_parameters")
@@ -48,39 +47,59 @@ class MSClients(fl.client.NumPyClient):
         """" Train model on the data (local data of each client) """
         print(f"[Client {self.cid}] fit, config: {config}")
 
+        # Initialize wandb run
+        run = wandb.init(project="FL4E", config=config, group="Client " + str(self.cid), job_type="training")
+        config = wandb.config
+
         # Update local model parameters
         model = self.set_parameters(parameters)
 
         # Get hyperparameters for this round
-        batch_size: int = self.config["batch_size"]
-        epochs: int = self.config["local_epochs"]
+        batch_size: int = config["batch_size"]
+        num_epochs: int = config["num_epochs"]
+        hidden = config["hidden"]
+        lr = config["lr"]
+        optimizer = config["optimizer"]
         train_dataset = self.trainset
         val_dataset = self.valset
 
         results = []
-        for epoch in range(epochs):
-            print(f"Training epoch {epoch + 1}/{epochs}...")
-            result = utils.train(model=model, train_dataset=train_dataset, val_dataset=val_dataset, num_epochs=5, batch_size=64,
-                                 hidden=25, lr=0.001)
+        for epoch in range(num_epochs):
+            print(f"Training epoch {epoch + 1}/{num_epochs}...")
+            result = utils.train(model=model, train_dataset=train_dataset, val_dataset=val_dataset,
+                                 optimizer=optimizer, num_epochs=num_epochs,
+                                 batch_size=batch_size,
+                                 hidden=hidden, lr=lr)
             print(
-                f" ROC_AUC: {result['train_roc_auc']:.4f} || Train Loss: {result['train_loss']:.4f}")
+                f" ROC_AUC: {result['val_roc_auc']:.4f} || Train Loss: {result['train_loss']:.4f}")
             print(
                 f" Val Loss: {result['val_loss']:.4f} ")
             results.append(result)
+
+            run.log({
+                "epoch": epoch + 1,
+                "train_loss": result['train_loss'],
+                "val_loss": result['val_loss'],
+                "val_roc_auc": result['val_roc_auc'],
+                "cid": self.cid
+            })
 
         parameters_prime = utils.get_model_params(model)
         num_examples_train = len(self.trainset)
 
         """returns the result of the last training epoch"""
 
-        results = {"train_loss": results[epoch]['train_loss'],
-                   "train_roc_auc": results[epoch]['train_roc_auc'],
-                   "val_loss": results[epoch]['val_loss'],
+        results = {"train_loss": results[-1]['train_loss'],
+                   "train_roc_auc": results[-1]['val_roc_auc'],
+                   "val_loss": results[-1]['val_loss'],
                    "cid": self.cid}
 
         """returns the result of the all training epoch"""
 
         return parameters_prime, num_examples_train, results
+
+
+
 
     def evaluate(self, parameters, config):
         """" evaluate the model on locally hold test data """
@@ -91,8 +110,7 @@ class MSClients(fl.client.NumPyClient):
         model = self.set_parameters(parameters)
 
         # Get config for the evaluation
-        steps: int = self.config["val_steps"]
-        batch_size: int = self.config["batch_size"]
+        batch_size: int = config["batch_size"]
 
         # Evaluate the global model on the local test data of each client and return results
 
@@ -105,7 +123,11 @@ class MSClients(fl.client.NumPyClient):
             "roc_auc": float(roc_auc),
             "cid": self.cid,
         }
-
+        wandb.log({
+            "test_loss": metrics["loss"],
+            "test_roc_auc": metrics["roc_auc"],
+            "eval_cid": metrics["cid"]
+        })
         return float(loss), num_examples, metrics
 
 
@@ -116,7 +138,7 @@ def main() -> None:
         "--cid",
         type=int,
         default=0,
-        choices=range(0, 3),
+        choices=range(0, 4),
         required=True,
         help="Specifies the CID (Client ID)",
     )
@@ -128,14 +150,8 @@ def main() -> None:
         "cuda:0" if torch.cuda.is_available() and args.use_cuda else "cpu"
     )
 
-    config = {
-        "batch_size": 64,
-        "local_epochs": 5,  # Example value, replace with your desired value
-        "val_steps": 10,  # Example value, replace with your desired value
-    }
-
     # start client
-    client = MSClients(args.cid, train_dataset, val_dataset ,test_dataset, device, config)
+    client = MSClients(args.cid, train_dataset, val_dataset, test_dataset, device)
 
     fl.client.start_numpy_client(server_address="0.0.0.0:8787", client=client)
 
@@ -151,6 +167,7 @@ if __name__ == "__main__":
 
     # Your script execution here
     main()
+    wandb.finish()
     # End measuring resource usage
     usage_end = resource.getrusage(resource.RUSAGE_SELF)
     # End measuring time

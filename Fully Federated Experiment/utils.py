@@ -70,46 +70,29 @@ def validate(model, criterion, val_loader, device):
     return val_loss / len(val_loader), roc_auc
 
 
-def train(model, train_dataset, val_dataset, num_epochs=10, batch_size=64, hidden=25, lr=0.001):
+def train(model, train_dataset, val_dataset, optimizer='adam', num_epochs=10, batch_size=64, hidden=25, lr=0.001):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    default_config = {
-        "lr": lr,
-        "batch_size": batch_size,
-        "num_epochs": num_epochs,
-        "optimizer": 'adam',
-        "hidden": hidden,
+    criterion = nn.BCEWithLogitsLoss()
+    optimizer = getattr(optim, optimizer.capitalize())(model.parameters(), lr=lr)
+    train_loader, val_loader, _ = get_data_loaders(train_dataset, val_dataset, batch_size)
+
+    for epoch in range(num_epochs):
+        train_loss = train_one_epoch(model, criterion, optimizer, train_loader, device)
+        val_loss, roc_auc = validate(model, criterion, val_loader, device)
+
+        print(f"Epoch {epoch + 1}/{num_epochs}:")
+        print(f"  Train Loss: {train_loss}")
+        print(f"  Validation Loss: {val_loss}")
+        print(f"  Val ROC-AUC: {roc_auc}")
+
+    results = {
+        "train_loss": train_loss,
+        "val_roc_auc": roc_auc,
+        "val_loss": val_loss,
     }
-
-    with wandb.init(config=default_config, project='FL4E', name='Fully Federated') as run:
-        config = wandb.config
-        criterion = nn.BCEWithLogitsLoss()
-        optimizer = getattr(optim, config.optimizer.capitalize())(model.parameters(), lr=config.lr)
-        train_loader, val_loader, _ = get_data_loaders(train_dataset, val_dataset, config.batch_size)
-
-        for epoch in range(config.num_epochs):
-            train_loss = train_one_epoch(model, criterion, optimizer, train_loader, device)
-            val_loss, roc_auc = validate(model, criterion, val_loader, device)
-
-            run.log({
-                "epoch": epoch + 1,
-                "train_loss": train_loss,
-                "val_loss": val_loss,
-                "roc_auc": roc_auc
-            })
-
-            print(f"Epoch {epoch + 1}/{config.num_epochs}:")
-            print(f"  Train Loss: {train_loss}")
-            print(f"  Validation Loss: {val_loss}")
-            print(f"  ROC-AUC: {roc_auc}")
-
-        results = {
-            "train_loss": train_loss,
-            "train_roc_auc": roc_auc,
-            "val_loss": val_loss,
-        }
-        return results
-        print(results)
+    print(results)
+    return results
 
 
 def evaluate(model, criterion, test_loader, device):
@@ -161,7 +144,6 @@ def load_partition(idx: int):
     testset = test_datasets[idx]
 
     num_samples = len(trainset)
-    print(num_samples)
     num_val_samples = int(0.2 * num_samples)
     num_train_samples = num_samples - num_val_samples
 
