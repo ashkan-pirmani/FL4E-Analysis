@@ -1,3 +1,8 @@
+# Centralized Experiment
+
+This experiment utilizes a centralized  setting in which clients all join in pooled setting.
+
+
 ## Repository Structure
 
 Below is a brief outline of the important files and their functions in the repository:

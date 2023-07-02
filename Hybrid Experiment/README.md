@@ -1,4 +1,4 @@
-# Analysis_3 - Hybrid Experiment
+# Hybrid Experiment
 
 This experiment utilizes a hybrid setting in which clients can join as either part of a federated setting or a centralized data sharing setting. Specifically, Clients 0 and 3 participate in the federated experiment, while Clients 1 and 2 participate in the centralized experiment.
 

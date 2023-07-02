@@ -135,7 +135,7 @@ def main() -> None:
         "--cid",
         type=int,
         default=0,
-        choices=range(0, 4),
+        choices=range(0, 3),
         required=True,
         help="Specifies the CID (Client ID)",
     )

@@ -5,7 +5,7 @@ cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"/
 
 sleep 3  # Sleep for 3s to give the server enough time to start
 
-for i in `seq 0 3`; do
+for i in `seq 0 2`; do
     echo "Starting client $i"
     python clients.py --cid=${i} &
 done

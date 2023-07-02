@@ -1,3 +1,8 @@
+# Fully Federated Experiment
+
+This experiment utilizes a Fully federated setting in which clients all join as federated setting.
+
+
 ## Repository Structure
 
 Below is a brief outline of the important files and their functions in the repository:
