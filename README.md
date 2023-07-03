@@ -48,6 +48,11 @@ The dataset is distributed among four clients, representing the four hospitals, 
     ```
     Follow the given instruction within the analysis. Repeat the above steps for `Hbrid Experiment` and `Centralized Experiment`.
 
+## FL4E Analysis Deployment guidance
+
+The WBCD is provided as a high-level guidance with the necessary scripts included. Please refer to the corresponding folders for instructions on how these scripts should be used within the FL4E and its associated components.
+
+
 ## Acknowledgements
 
 This work would not have been possible without the following:
