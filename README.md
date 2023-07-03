@@ -36,7 +36,7 @@ The dataset is distributed among four clients, representing the four hospitals, 
     Next, install the necessary dependencies for the project. We recommend creating a virtual environment before proceeding with this step.
 
     ```
-    TBD
+    conda env create -f environment.yaml
     ```
 
 3. **Run the Experiments**
