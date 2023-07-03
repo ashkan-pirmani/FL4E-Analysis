@@ -1,6 +1,4 @@
-import warnings
 import flwr as fl
-import numpy as np
 
 import utils
 import argparse
