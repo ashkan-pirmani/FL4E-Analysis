@@ -9,10 +9,10 @@ FL4E-FedHeartDisease is a comprehensive implementation of the FL4E (Federated Le
 
 This repository contains three primary analysis subfolders, which showcase three experiments conducted to illustrate the versatility of the FL4E framework in varying scenarios. 
 
-- **Fully Federated Experiment**
-- **Hybrid Experiment**
-- **Centralized Experiment**
-- **WBCD Practical Demo**
+- [**Fully Federated Experiment**](./Fully%20Federated%20Experiment)
+- [**Hybrid Experiment**](./Hybrid%20Experiment)
+- [**Centralized Experiment**](./Centralized%20Experiment)
+- [**WBCD Practical Demo**](./WBCD%20Practical%20Demo)
 
 Each of these analysis folders contains necessary scripts for performing the experiments, analyzing the results, and additional scripts for specific tasks.
 
