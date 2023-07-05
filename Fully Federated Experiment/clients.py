@@ -13,7 +13,7 @@ import warnings
 
 # warnings.filterwarnings("ignore")
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model = Net(13, 25, 1).to(DEVICE)
+model = Net(13, 20, 1).to(DEVICE)
 
 
 class FL4EClients(fl.client.NumPyClient):
@@ -115,17 +115,17 @@ class FL4EClients(fl.client.NumPyClient):
         # Evaluate the global model on the local test data of each client and return results
 
         testset = self.testset
-        loss, roc_auc = utils.test(model=model, test_dataset=testset, batch_size=batch_size)
+        loss, test_roc_auc = utils.test(model=model, test_dataset=testset, batch_size=batch_size)
         num_examples = len(self.testset)
 
         metrics = {
             "loss": float(loss),
-            "roc_auc": float(roc_auc),
+            "test_roc_auc": float(test_roc_auc),
             "cid": self.cid,
         }
         wandb.log({
             "test_loss": metrics["loss"],
-            "test_roc_auc": metrics["roc_auc"],
+            "test_roc_auc": metrics["test_roc_auc"],
             "eval_cid": metrics["cid"]
         })
         return float(loss), num_examples, metrics

@@ -65,9 +65,9 @@ def validate(model, criterion, val_loader, device):
             val_labels.extend(labels.cpu().numpy())
 
     fpr, tpr, thresholds = roc_curve(val_labels, val_predictions)
-    roc_auc = auc(fpr, tpr)
+    val_roc_auc = auc(fpr, tpr)
 
-    return val_loss / len(val_loader), roc_auc
+    return val_loss / len(val_loader), val_roc_auc
 
 
 def train(model, train_dataset, val_dataset, optimizer='adam', num_epochs=10, batch_size=64, hidden=25, lr=0.001):
@@ -79,16 +79,16 @@ def train(model, train_dataset, val_dataset, optimizer='adam', num_epochs=10, ba
 
     for epoch in range(num_epochs):
         train_loss = train_one_epoch(model, criterion, optimizer, train_loader, device)
-        val_loss, roc_auc = validate(model, criterion, val_loader, device)
+        val_loss, val_roc_auc = validate(model, criterion, val_loader, device)
 
         print(f"Epoch {epoch + 1}/{num_epochs}:")
         print(f"  Train Loss: {train_loss}")
         print(f"  Validation Loss: {val_loss}")
-        print(f"  Val ROC-AUC: {roc_auc}")
+        print(f"  Val ROC-AUC: {val_roc_auc}")
 
     results = {
         "train_loss": train_loss,
-        "val_roc_auc": roc_auc,
+        "val_roc_auc": val_roc_auc,
         "val_loss": val_loss,
     }
     print(results)
@@ -113,9 +113,9 @@ def evaluate(model, criterion, test_loader, device):
             test_labels.extend(labels.cpu().numpy())
 
     fpr, tpr, thresholds = roc_curve(test_labels, test_predictions)
-    roc_auc = auc(fpr, tpr)
+    test_roc_auc = auc(fpr, tpr)
 
-    return test_loss / len(test_loader), roc_auc
+    return test_loss / len(test_loader), test_roc_auc
 
 
 def test(model, test_dataset, batch_size=64):
@@ -123,12 +123,12 @@ def test(model, test_dataset, batch_size=64):
     criterion = nn.BCEWithLogitsLoss()
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
-    test_loss, roc_auc = evaluate(model, criterion, test_loader, device)
+    test_loss, test_roc_auc = evaluate(model, criterion, test_loader, device)
 
     print("Test Loss:", test_loss)
-    print("ROC-AUC:", roc_auc)
+    print("Test ROC-AUC:", test_roc_auc)
 
-    return test_loss, roc_auc
+    return test_loss, test_roc_auc
 
 
 def load_partition(idx: int):

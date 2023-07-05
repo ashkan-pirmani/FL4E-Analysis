@@ -4,6 +4,7 @@ import warnings
 from typing import List, Tuple, Union, Dict, Optional
 import numpy as np
 import flwr as fl
+from utils import get_model_params, Net
 from flwr.common import Metrics, FitRes, Scalar, Parameters, parameters_to_ndarrays
 from flwr.server.client_proxy import ClientProxy
 import os
@@ -24,10 +25,10 @@ def fit_config(server_round: int):
 
     """
     config = {
-        "batch_size": 64,
+        "batch_size": 4,
         "num_epochs": 10,
-        "hidden": 28,
-        "lr": 0.001,
+        "hidden": 40,
+        "lr": 0.0001,
         "optimizer": 'adam',
     }
     return config
@@ -38,32 +39,32 @@ def evaluate_config(server_round: int):
 
     """
     config = {
-        "batch_size": 64,
+        "batch_size": 4,
     }
     return config
 
 
 def weighted_average(metrics):
     wandb.init(project="FL4E-Experiments", config=None, group="Hybrid - Server", job_type="server")
-    roc_auc_weights = [num_examples * m["roc_auc"] for num_examples, m in metrics]
+    roc_auc_weights = [num_examples * m["test_roc_auc"] for num_examples, m in metrics]
     loss_weights = [num_examples * m["loss"] for num_examples, m in metrics]
     cid = [m["cid"] for num_examples, m in metrics]
 
     examples = [num_examples for num_examples, _ in metrics]
 
     total_examples = sum(examples)
-    roc_auc = sum(roc_auc_weights) / total_examples
+    test_roc_auc = sum(roc_auc_weights) / total_examples
     loss = sum(loss_weights) / total_examples
 
     print(
-        f"This should be Client ID joined for the evaluation {cid} | Aggregated ROC-AUC: {roc_auc}  | Aggregated Loss: {loss}")
+        f"This should be Client ID joined for the evaluation {cid} | Aggregated ROC-AUC: {test_roc_auc}  | Aggregated Loss: {loss}")
 
-    wandb.log({"Aggregated roc_auc": roc_auc, "Aggregated loss": loss, "cid": cid})
+    wandb.log({"Aggregated roc_auc": test_roc_auc, "Aggregated loss": loss, "cid": cid})
 
-    return {"roc_auc": roc_auc, "loss": loss}
+    return {"Test roc_auc": test_roc_auc, "loss": loss}
 
 
-class SaveModelStrategy(fl.server.strategy.FedAvg):
+class SaveModelStrategy(fl.server.strategy.FedProx):
     def aggregate_fit(
             self,
             server_round: int,
@@ -118,14 +119,18 @@ def main():
         evaluate_metrics_aggregation_fn=weighted_average,
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=evaluate_config,
-        # fit_metrics_aggregation_fn=clients_id
+        #initial_parameters=fl.common.ndarrays_to_parameters(get_model_params(Net(13,20,1))),
+        # eta=0.001,  # Server-side learning rate
+        # eta_l=0.01 , # Client-side learning rate
+        # tau=0.01 , # Controls the algorithm's degree of adaptability
+        proximal_mu= 0.01
 
     )
 
 
     fl.server.start_server(
         server_address="0.0.0.0:8787",
-        config=fl.server.ServerConfig(num_rounds=5),
+        config=fl.server.ServerConfig(num_rounds=10),
         strategy=strategy,
     )
 

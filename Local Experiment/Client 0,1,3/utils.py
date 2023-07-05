@@ -1,7 +1,4 @@
 import torch
-import time
-import resource
-import os
 from torch import nn
 import numpy as np
 import torch.optim as optim
@@ -100,14 +97,11 @@ def train_and_test(train_dataset, test_dataset, val_ratio=0.2, num_epochs=10, ba
         "hidden": hidden,
     }
 
-    with wandb.init(config=default_config, project='FL4E-Experiments', group='Centralized') as run:
+    with wandb.init(config=default_config, project='FL4E-Experiments', group='Local') as run:
         config = wandb.config
         model = Net(13, hidden, 1).to(device)
         criterion = nn.BCEWithLogitsLoss()
-        if config.optimizer.lower() == 'sgd':
-            optimizer = torch.optim.SGD(model.parameters(), lr=config.lr)
-        elif config.optimizer.lower() == 'adam':
-            optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+        optimizer = getattr(optim, config.optimizer.capitalize())(model.parameters(), lr=config.lr)
         train_loader, val_loader, test_loader = get_data_loaders(train_dataset, test_dataset, val_ratio, config.batch_size)
 
         for epoch in range(config.num_epochs):
@@ -137,9 +131,15 @@ def train_and_test(train_dataset, test_dataset, val_ratio=0.2, num_epochs=10, ba
         return test_loss, test_roc_auc
 
 
-def run_experiments(n_experiments, train_dataset, test_dataset, val_ratio=0.2, num_epochs=10, batch_size=4, hidden=40,
-                    lr=0.0001):
-    test_losses, test_roc_aucs = [], []
+import time
+import resource
+import numpy as np
+import os
+
+
+def run_experiments(n_experiments, train_dataset, test_dataset, val_ratio=0.2, num_epochs=5, batch_size=16, hidden=20,
+                    lr=0.01):
+    test_losses, roc_aucs = [], []
     cpu_times, ram_usages, elapsed_times = [], [], []
 
     for i in range(n_experiments):
@@ -150,7 +150,7 @@ def run_experiments(n_experiments, train_dataset, test_dataset, val_ratio=0.2, n
         usage_start = resource.getrusage(resource.RUSAGE_SELF)
 
         # Run the experiment
-        test_loss, test_roc_auc = train_and_test(train_dataset, test_dataset, val_ratio, num_epochs, batch_size, hidden, lr)
+        test_loss, roc_auc = train_and_test(train_dataset, test_dataset, val_ratio, num_epochs, batch_size, hidden, lr)
 
         # End measuring resource usage and time
         usage_end = resource.getrusage(resource.RUSAGE_SELF)
@@ -158,7 +158,7 @@ def run_experiments(n_experiments, train_dataset, test_dataset, val_ratio=0.2, n
 
         # Calculate and store experiment metrics
         test_losses.append(test_loss)
-        test_roc_aucs.append(test_roc_auc)
+        roc_aucs.append(roc_auc)
 
         # Calculate and store resource usage and elapsed time
         cpu_times.append(usage_end.ru_utime - usage_start.ru_utime)
@@ -170,8 +170,8 @@ def run_experiments(n_experiments, train_dataset, test_dataset, val_ratio=0.2, n
 
     avg_test_loss = np.mean(test_losses)
     std_test_loss = np.std(test_losses)
-    avg_test_roc_auc = np.mean(test_roc_aucs)
-    std_roc_auc = np.std(test_roc_aucs)
+    avg_roc_auc = np.mean(roc_aucs)
+    std_roc_auc = np.std(roc_aucs)
 
     avg_cpu_time = np.mean(cpu_times)
     std_cpu_time = np.std(cpu_times)
@@ -181,11 +181,11 @@ def run_experiments(n_experiments, train_dataset, test_dataset, val_ratio=0.2, n
     std_ram_usage = np.std(ram_usages)
 
     print(f"\nAverage Test Loss: {avg_test_loss} +- {std_test_loss}")
-    print(f"Average Test ROC-AUC: {avg_test_roc_auc} +- {std_roc_auc}")
+    print(f"Average ROC-AUC: {avg_roc_auc} +- {std_roc_auc}")
     print(f"\nAverage CPU Time: {avg_cpu_time} +- {std_cpu_time} seconds")
     print(f"Average Elapsed Time: {avg_elapsed_time} +- {std_elapsed_time} seconds")
     print(f"Average RAM Usage: {avg_ram_usage} +- {std_ram_usage} megabytes")
 
     print('Logs and models saved in current directory')
 
-    return avg_test_loss, std_test_loss, avg_test_roc_auc, std_roc_auc, avg_cpu_time, std_cpu_time, avg_elapsed_time, std_elapsed_time, avg_ram_usage, std_ram_usage
+    return avg_test_loss, std_test_loss, avg_roc_auc, std_roc_auc, avg_cpu_time, std_cpu_time, avg_elapsed_time, std_elapsed_time, avg_ram_usage, std_ram_usage
