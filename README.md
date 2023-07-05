@@ -14,7 +14,8 @@ This repository contains three primary analysis subfolders, which showcase three
 - [**Centralized Experiment**](./Centralized%20Experiment)
 - [**Local Experiment**](./Local%20Experiment)
 - [**WBCD Practical Demo**](./WBCD-Practical%20Demo)
-
+- [**Hyperparameter tuning sweep for centralized setting**](https://api.wandb.ai/links/ashkan-pirmani/y8tuvkj6)
+  
 Each of these analysis folders contains necessary scripts for performing the experiments, analyzing the results, and additional scripts for specific tasks.
 
 ## Dataset
