@@ -12,6 +12,7 @@ This repository contains three primary analysis subfolders, which showcase three
 - [**Fully Federated Experiment**](./Fully%20Federated%20Experiment)
 - [**Hybrid Experiment**](./Hybrid%20Experiment)
 - [**Centralized Experiment**](./Centralized%20Experiment)
+- [**Local Experiment**](./Local%20Experiment)
 - [**WBCD Practical Demo**](./WBCD-Practical%20Demo)
 
 Each of these analysis folders contains necessary scripts for performing the experiments, analyzing the results, and additional scripts for specific tasks.
@@ -49,7 +50,7 @@ The dataset is distributed among four clients, representing the four hospitals, 
     ```
     cd ./Fully Federated Experiment
     ```
-    Follow the given instruction within the analysis. Repeat the above steps for `Hbrid Experiment` and `Centralized Experiment`.
+    Follow the given instruction within the analysis. Repeat the above steps for `Hybrid Experiment` , `Centralized Experiment` and `Local Experiment`.
 
 ## FL4E Analysis Deployment guidance
 
