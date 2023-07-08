@@ -188,3 +188,8 @@ Fed_Tcga_Brca/Centralized Experiment/flamby_dataset.py
 Fed_Tcga_Brca/Fully Federated Experiment/wandb
 Fed_Tcga_Brca/Fully Federated Experiment/flamby_dataset.py
 Fed_Tcga_Brca/Fully Federated Experiment/output
+
+
+Fed_Tcga_Brca/Hybrid Experiment/Federated Experiment/wandb
+Fed_Tcga_Brca/Hybrid Experiment/Federated Experiment/flamby_dataset.py
+Fed_Tcga_Brca/Hybrid Experiment/Federated Experiment/output
