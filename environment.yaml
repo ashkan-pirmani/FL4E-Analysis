@@ -9,6 +9,7 @@ dependencies:
   - pip:
       - flwr==1.4.0
       - grpcio==1.51.1
+      - lifelines
       - pandas=1.5.2
       - pyyaml==6.0
       - ray==2.2.0

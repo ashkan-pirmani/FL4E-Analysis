@@ -162,9 +162,29 @@ cython_debug/
 
 FLamby/
 Dataset/
-Centralized Experiment/wandb
-Centralized Experiment/flamby_dataset.py
+
 .gitignore
 .idea
-Fully Federated Experiment/flamby_dataset.py
-Fully Federated Experiment/wandb
+
+Fed_Heart_Disease/Centralized Experiment/wandb
+Fed_Heart_Disease/Centralized Experiment/flamby_dataset.py
+
+Fed_Heart_Disease/Fully Federated Experiment/flamby_dataset.py
+Fed_Heart_Disease/Fully Federated Experiment/wandb
+Fed_Heart_Disease/Fully Federated Experiment/output
+
+Fed_Heart_Disease/Hybrid Experiment/Federated Experiment/flamby_dataset.py
+Fed_Heart_Disease/Hybrid Experiment/Federated Experiment/wandb
+Fed_Heart_Disease/Hybrid Experiment/Federated Experiment/output
+
+Fed_Heart_Disease/Local Experiment/Client 0,1,3/flamby_dataset.py
+Fed_Heart_Disease/Local Experiment/Client 0,1,3/wandb
+Fed_Heart_Disease/Local Experiment/Client 2/flamby_dataset.py
+Fed_Heart_Disease/Local Experiment/Client 2/wandb
+
+Fed_Tcga_Brca/Centralized Experiment/wandb
+Fed_Tcga_Brca/Centralized Experiment/flamby_dataset.py
+
+Fed_Tcga_Brca/Fully Federated Experiment/wandb
+Fed_Tcga_Brca/Fully Federated Experiment/flamby_dataset.py
+Fed_Tcga_Brca/Fully Federated Experiment/output
