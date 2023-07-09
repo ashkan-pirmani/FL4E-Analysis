@@ -2,6 +2,8 @@
 
 
 # Real-World Application of FL4E
+(NEEDS to be updated for the recent commits)
+
 
 
 FL4E-FedHeartDisease is a comprehensive implementation of the FL4E (Federated Learning for Everyone) framework. It employs the Fed-Heart-Disease dataset from Flamby to facilitate research on clinical healthcare data. This repository is integral to our project, "Federated Learning for Everyone." It is engineered to function independently and can be executed locally, acting as the analytical resource for the use case section of FL4E. Additionally, the repository includes a WBCD experiment, which serves as a guide for the generalization of the scripts to be used within framework.
