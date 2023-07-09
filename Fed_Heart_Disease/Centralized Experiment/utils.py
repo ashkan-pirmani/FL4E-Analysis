@@ -3,6 +3,7 @@ import time
 import resource
 import os
 from torch import nn
+from torch.nn.modules.loss import _Loss
 import numpy as np
 import torch.optim as optim
 from sklearn.metrics import roc_auc_score
@@ -30,11 +31,25 @@ class Net(nn.Module):
     def forward(self, x):
         return torch.sigmoid(self.linear(x))
 
+
+
+class criterionBCE(_Loss):
+    def __init__(self):
+        super(criterionBCE, self).__init__()
+        self.bce = torch.nn.BCELoss()
+
+    def forward(self, input: torch.Tensor, target: torch.Tensor):
+        return self.bce(input, target)
+
+
+criterionBCELL = nn.BCEWithLogitsLoss()
+
 def accuracy(output, target):
     output = torch.round(output)  # Convert output probabilities to binary output (0 or 1)
     correct = (output == target).float().sum()  # Count how many are identical
     accuracy = correct / output.shape[0]  # Calculate accuracy
     return accuracy
+
 
 def get_data_loaders(train_dataset, test_dataset, val_ratio, batch_size):
     if val_ratio > 0:
@@ -55,7 +70,6 @@ def get_data_loaders(train_dataset, test_dataset, val_ratio, batch_size):
     return train_loader, val_loader, test_loader
 
 
-
 def train_one_epoch(model, criterion, optimizer, train_loader, device):
     model.train()
     train_loss = 0.0
@@ -72,6 +86,7 @@ def train_one_epoch(model, criterion, optimizer, train_loader, device):
 
         train_loss += loss.item()
     return train_loss / len(train_loader)
+
 
 def validate(model, criterion, val_loader, device):
     model.eval()
@@ -93,6 +108,7 @@ def validate(model, criterion, val_loader, device):
             val_predictions.extend(predictions)
             val_labels.extend(labels.cpu().numpy())
     return val_loss / len(val_loader), roc_auc_score(val_labels, val_predictions), np.mean(val_accuracies)
+
 
 def test(model, criterion, test_loader, device):
     model.eval()
@@ -116,25 +132,36 @@ def test(model, criterion, test_loader, device):
     return test_loss / len(test_loader), roc_auc_score(test_labels, test_predictions), np.mean(test_accuracies)
 
 
-def train_and_test(train_dataset, test_dataset, val_ratio=0.2, num_epochs=10, batch_size=64, lr=0.001, patience=3):
+def train_and_test(train_dataset, test_dataset, val_ratio=0.2, num_epochs=10, batch_size=64, lr=0.001,
+                   weight_decay=0.05, patience=3):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     default_config = {
         "lr": lr,
         "batch_size": batch_size,
         "num_epochs": num_epochs,
-        "optimizer": 'sgd',
+        "optimizer": 'adam',
+        "weight_decay": weight_decay,
+        "criterion": 'logitloss'
     }
 
     with wandb.init(config=default_config, project='FL4E-Experiments', group='Fed-Heart-Centralized') as run:
         config = wandb.config
         model = Net().to(device)
-        criterion = nn.BCEWithLogitsLoss()
+        if config.criterion.lower() == 'bce':
+            criterion = criterionBCE()
+        elif config.criterion.lower() == 'logitloss':
+            criterion = criterionBCELL
         if config.optimizer.lower() == 'sgd':
-            optimizer = torch.optim.SGD(model.parameters(), lr=config.lr ,weight_decay=0.05)
+            optimizer = torch.optim.SGD(model.parameters(), lr=config.lr, weight_decay=config.weight_decay)
         elif config.optimizer.lower() == 'adam':
-            optimizer = torch.optim.Adam(model.parameters(), lr=config.lr, weight_decay=0.05)
-        train_loader, val_loader, test_loader = get_data_loaders(train_dataset, test_dataset, val_ratio, config.batch_size)
+            optimizer = torch.optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.weight_decay)
+
+        # Define the learning rate scheduler
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+
+        train_loader, val_loader, test_loader = get_data_loaders(train_dataset, test_dataset, val_ratio,
+                                                                 config.batch_size)
 
         early_stop_counter = 0
         best_val_loss = float('inf')
@@ -156,6 +183,9 @@ def train_and_test(train_dataset, test_dataset, val_ratio=0.2, num_epochs=10, ba
             print(f"  Validation Loss: {val_loss}")
             print(f"  Validation ROC-AUC: {val_roc_auc}")
             print(f"  Validation Accuracy: {val_accuracy}")
+
+            # Update learning rate
+            scheduler.step()
 
             # Early stopping logic
             if val_loss < best_val_loss:
@@ -181,9 +211,8 @@ def train_and_test(train_dataset, test_dataset, val_ratio=0.2, num_epochs=10, ba
         return test_loss, test_roc_auc, test_accuracy
 
 
-
 def run_experiments(n_experiments, train_dataset, test_dataset, val_ratio=0.2, num_epochs=70, batch_size=1,
-                    lr=0.001):
+                    lr=0.01, weight_decay=0.1):
     test_losses, test_roc_aucs, test_accs = [], [], []
     cpu_times, ram_usages, elapsed_times = [], [], []
 
@@ -196,7 +225,7 @@ def run_experiments(n_experiments, train_dataset, test_dataset, val_ratio=0.2, n
 
         # Run the experiment
         test_loss, test_roc_auc, test_acc = train_and_test(train_dataset, test_dataset, val_ratio, num_epochs,
-                                                           batch_size, lr)
+                                                           batch_size, lr, weight_decay)
 
         # End measuring resource usage and time
         usage_end = resource.getrusage(resource.RUSAGE_SELF)

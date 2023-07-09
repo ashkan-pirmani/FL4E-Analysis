@@ -70,7 +70,7 @@ def weighted_average(metrics):
 
 
 
-class SaveModelStrategy(fl.server.strategy.FedProx):
+class SaveModelStrategy(fl.server.strategy.FedYogi):
     def aggregate_fit(
             self,
             server_round: int,
@@ -125,11 +125,11 @@ def main():
         evaluate_metrics_aggregation_fn=weighted_average,
         on_fit_config_fn=fit_config,
         on_evaluate_config_fn=evaluate_config,
-        #initial_parameters=fl.common.ndarrays_to_parameters(get_model_params(Net())),
+        initial_parameters=fl.common.ndarrays_to_parameters(get_model_params(Net())),
         #eta=0.001,  # Server-side learning rate
         #eta_l=0.01 , # Client-side learning rate
         #tau=0.01 , # Controls the algorithm's degree of adaptability
-        proximal_mu = 0.01
+        #proximal_mu = 0.01
     )
 
 
