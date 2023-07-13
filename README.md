@@ -67,6 +67,8 @@ This work would not have been possible without the following:
 - McMahan, B. et al., 2017. Communication-Efficient Learning of Deep Networks from Decentralized Data. arXiv preprint arXiv:1602.05629.
 - Beutel D, et al., 2020. Flower: A Friendly Federated Learning Research Framework. arXiv preprint arXiv:2007.14390.
 - Ogier, M. et al., 2023. Flamby: A Suite Tailored for Healthcare Data. arXiv preprint arXiv:2303.03219.
+- Liu J, Lichtenberg T, Hoadley KA, Poisson LM, Lazar AJ, Cherniack AD, Kovatich AJ, Benz CC, Levine DA, Lee AV, Omberg L, Wolf DM, Shriver CD, Thorsson V; Cancer Genome Atlas Research Network, Hu H. An Integrated TCGA Pan-Cancer Clinical Data Resource to Drive High-Quality Survival Outcome Analytics. Cell. 2018 Apr 5;173(2):400-416.e11. doi: 10.1016/j.cell.2018.02.052. PMID: 29625055; PMCID: PMC6066282.
+- Andreux, M., Manoel, A., Menuet, R., Saillard, C., and Simpson, C., “Federated Survival Analysis with Discrete-Time Cox Models”, arXiv e-prints, 2020
 
 ## License
 
