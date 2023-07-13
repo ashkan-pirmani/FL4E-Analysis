@@ -2,31 +2,25 @@
 
 
 # Real-World Application of FL4E
-(NEEDS to be updated for the recent commits)
 
 
 
-FL4E-FedHeartDisease is a comprehensive implementation of the FL4E (Federated Learning for Everyone) framework. It employs the Fed-Heart-Disease dataset from Flamby to facilitate research on clinical healthcare data. This repository is integral to our project, "Federated Learning for Everyone." It is engineered to function independently and can be executed locally, acting as the analytical resource for the use case section of FL4E. Additionally, the repository includes a WBCD experiment, which serves as a guide for the generalization of the scripts to be used within framework.
+Two comprehensive analyses have been incorporated within the FL4E (Federated Learning for Everyone) framework. These analyses utilize the Fed-Heart-Disease and Fed_Tcga_Brca datasets from Flamby, thereby facilitating research on clinical healthcare data. This particular repository serves as a crucial component of our project, "Federated Learning for Everyone". Designed to operate independently, it can be run locally and acts as the primary analytical resource for the use case section within FL4E. The repository also features a WBCD experiment, which provides a blueprint for generalizing scripts intended for use within the framework.
+
 ## Contents
 
-This repository contains three primary analysis subfolders, which showcase three experiments conducted to illustrate the versatility of the FL4E framework in varying scenarios. 
+This repository contains three primary analysis subfolders, which showcase experiments conducted to illustrate the versatility of the FL4E framework in varying scenarios. 
 
-- [**Fully Federated Experiment**](./Fully%20Federated%20Experiment)
-- [**Hybrid Experiment**](./Hybrid%20Experiment)
-- [**Centralized Experiment**](./Centralized%20Experiment)
-- [**Local Experiment**](./Local%20Experiment)
+- [**Fed_Heart_Disease Experiments**](./Fed_Heart_Disease)
+- [**Fed_Tcga_Brca Experiments**](./Fed_Tcga_Brca)
 - [**WBCD Practical Demo**](./WBCD-Practical%20Demo)
-- [**Hyperparameter tuning sweep for centralized setting**](https://api.wandb.ai/links/ashkan-pirmani/y8tuvkj6)
+- [**Hyperparameter tuning sweep for centralized setting Fed-Heart-Disease dataset**](https://api.wandb.ai/links/ashkan-pirmani/zo06t74m)
   
 Each of these analysis folders contains necessary scripts for performing the experiments, analyzing the results, and additional scripts for specific tasks.
 
 ## Dataset
 
-The dataset used in this repository is sourced from Flamby's Fed-Heart-Disease dataset. The dataset comprises 740 patient records collected from four different hospitals located in the USA, Switzerland, and Hungary. 
-
-Flamby has preprocessed this dataset, which includes encoding non-binary categorical variables as dummy variables and handling missing values, resulting in 13 features.
-
-The dataset is distributed among four clients, representing the four hospitals, with varying numbers of examples: 303, 261, 46, and 130, referred to as Client 0, Client 1, Client 2, and Client 3 respectively. 
+The dataset used in this repository is sourced from Flamby's Fed-Heart-Disease and Fed-Tcga-Brca dataset.
 
 ## How to Reproduce the Repository
 
@@ -51,7 +45,7 @@ The dataset is distributed among four clients, representing the four hospitals, 
     Now, navigate to each of the analysis folders and run the scripts contained within. 
 
     ```
-    cd ./Fully Federated Experiment
+    cd ./data_set/Fully Federated Experiment
     ```
     Follow the given instruction within the analysis. Repeat the above steps for `Hybrid Experiment` , `Centralized Experiment` and `Local Experiment`.
 
