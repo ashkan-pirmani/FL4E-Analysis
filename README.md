@@ -3,9 +3,10 @@
 
 # Real-World Application of FL4E
 
-
-
 Two comprehensive analyses have been incorporated within the [FL4E (Federated Learning for Everyone) framework](https://github.com/ashkan-pirmani/FL4E). These analyses utilize the Fed-Heart-Disease and Fed-Tcga-Brca datasets from Flamby, thereby facilitating research on clinical healthcare data. This particular repository serves as a crucial component of our project, "Federated Learning for Everyone". Designed to operate independently, it can be run locally and acts as the primary analytical resource for the use case section within FL4E. The repository also features a WBCD experiment, which provides a blueprint for generalizing scripts intended for use within the framework.
+
+The figure below illustrates the high-level architecture of the FL4E framework, accompanied by anticipated user stories and functionalities. For more information about the FL4E, refer to the main repository of this [framework](https://github.com/ashkan-pirmani/FL4E).
+<img src="Materials/FL4E-Flow.png" >
 
 ## Contents
 
