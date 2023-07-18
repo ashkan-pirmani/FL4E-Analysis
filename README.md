@@ -5,7 +5,7 @@
 
 
 
-Two comprehensive analyses have been incorporated within the FL4E (Federated Learning for Everyone) framework. These analyses utilize the Fed-Heart-Disease and Fed_Tcga_Brca datasets from Flamby, thereby facilitating research on clinical healthcare data. This particular repository serves as a crucial component of our project, "Federated Learning for Everyone". Designed to operate independently, it can be run locally and acts as the primary analytical resource for the use case section within FL4E. The repository also features a WBCD experiment, which provides a blueprint for generalizing scripts intended for use within the framework.
+Two comprehensive analyses have been incorporated within the [FL4E (Federated Learning for Everyone) framework](https://github.com/ashkan-pirmani/FL4E). These analyses utilize the Fed-Heart-Disease and Fed_Tcga_Brca datasets from Flamby, thereby facilitating research on clinical healthcare data. This particular repository serves as a crucial component of our project, "Federated Learning for Everyone". Designed to operate independently, it can be run locally and acts as the primary analytical resource for the use case section within FL4E. The repository also features a WBCD experiment, which provides a blueprint for generalizing scripts intended for use within the framework.
 
 ## Contents
 
@@ -120,6 +120,6 @@ This work would not have been possible without the following:
 
 ## License
 
-This project is licensed under the terms of the MIT license. Please see [LICENSE](https://github.com/yourusername/FL4E-FedHeartDisease/blob/main/LICENSE) in the repository for more information.
+This project is licensed under the terms of the GPLV3 license. Please see [LICENSE](https://github.com/ashkan-pirmani/FL4E-Analysis/LICENSE) in the repository for more information.
 
 
