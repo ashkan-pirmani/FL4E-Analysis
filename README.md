@@ -23,6 +23,9 @@ Each of these analysis folders contains necessary scripts for performing the exp
 
 The dataset used in this repository is sourced from Flamby's Fed-Heart-Disease and Fed-Tcga-Brca dataset.
 
+<img src="Materials/Data20%Heterogeneity.png" >
+
+
 ## How to Reproduce the Repository
 
 1. **Clone the Repository** 
